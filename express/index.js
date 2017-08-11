@@ -1,6 +1,11 @@
 var express		= require('express'),
 	request 	= require('request'),
 	mysql 		= require('mysql'),
+	jade 		= require('jade'),
+	url 		= require('url'),
+	http		= require('http'),
+	path		= require('path'),
+	apps 		= require('./apps'),
 	app			= express()
 
 // body parser
@@ -9,7 +14,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 
 // mysql configuration
-var connection	= mysql.createConnection({
+var sql	= mysql.createConnection({
 	host 		: 'localhost',
 	user 		: 'root',
 	password	: 'wildansnahar',
@@ -17,13 +22,18 @@ var connection	= mysql.createConnection({
 })
 
 // connect to mysql
-connection.connect(function(err){
+sql.connect(function(err){
 	if(err) throw err;
 	console.log('connect to mysql')
 })
 
+// view directory
+app.use('/static', express.static('public'));
+app.set('views', path.join(__dirname, '/views'));
+app.set('view engine', 'jade')
+
 app.get('/', function(req, res){
-	res.send("<h1> express! </h1> <br> <a href='results'> results </a>")
+	res.send("<h1> express! </h1> <br> <a href='apps'> results </a>")
 })
 
 // test to insert query
@@ -32,23 +42,24 @@ app.post('/results', function(req, res){
 	post.date 		= new Date(),
 	post.potentio 	= req.body.potentio
 
-	connection.query('INSERT INTO analog_read SET ?', post, function(err, results, fields){
+	sql.query('INSERT INTO analog_read SET ?', post, function(err, results, fields){
 		if(err) throw err;
 		console.log('sent success with value : ', post.potentio)
 		res.json({'status':'success!'})
 	})
 })
 
+
 app.get('/results', function(req, res){
 	// fetch data from sql
-	connection.query('SELECT * FROM analog_read', function(err, results, fields){
+	sql.query('SELECT * FROM analog_read', function(err, results, fields){
 		if(err) throw err;
 		res.send(results)
 	})
 })
 
-app.post('/')
+app.use('/apps', apps)
 
-app.listen(3000, function(){
-	console.log('listen on 3000 express')
-})
+app.listen(3500, function listening() {
+  console.log('Listening on 3500');
+});

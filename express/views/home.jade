@@ -1,0 +1,82 @@
+head
+	title Arduino Ethernet Live Measurement
+	<meta http-equiv="refresh" content="3" />
+
+	script(type="text/javascript" src="/static/loader.js")
+	script(type="text/javascript" src="/static/sorter.js")
+	script(src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.js')
+	style.
+		table {
+		    border-collapse: collapse;
+		}
+
+		table, th, td {
+		    border: 1px solid black;
+		}
+body
+	h1=title
+
+	h2 Random data generator
+
+	form(method='post' action='apps/generate')
+		button(type='submit' style='color:green;') GENERATE
+	form(method='post' action='apps/clear')
+		button(type='submit' style='color:red') CLEAR
+	hr
+
+	div(id='data', style='float:left; padding-left:50px')
+		h2 Data
+		span(style='float:left')
+			a(href='apps/export' target='_blank') Export data
+		br
+		br
+		table(border='1')
+			thead
+				tr
+					th Date (WIB)
+					th temperature (celcius)
+			tbody
+				each data in results
+					tr
+						td=data.date
+						td(style='text-align:center')=data.potentio
+	div(id='graph', style='float:right;')
+		div(id="curve_chart" style="width: 700px; height: 500px")
+
+script.
+	 google.charts.load('current', {'packages':['corechart']});
+	 google.charts.setOnLoadCallback(drawChart);
+	 function drawChart() {
+	 var date = [#{d}]
+	 var temperature = [#{p}]
+	 var data = new google.visualization.DataTable();
+	 data.addColumn('number', 'date')
+	 data.addColumn('number', 'temperature')
+	 for(var i=0; i<date.length; i++){
+	 	data.addRow([date[i], temperature[i]])
+	 }
+	 var options = {
+	 title: 'temperature Graph',
+	 curveType: 'function',
+	 legend: { position: 'top' }
+	 };
+	 var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
+
+	 google.visualization.events.addListener(chart, 'ready', function(){
+	 	curve_chart.innerHTML = '<img src="' + chart.getImageURI() + '">';
+	 	console.log(curve_chart.innerHTML)
+	 })
+
+	 chart.draw(data, options);
+	 }
+script.
+	$(document).ready(function(){
+		$('table')
+		.tablesorter({widthFixed:true, widgets:['zebra']})
+		.tablesorterPager({container:$("#pager")}})
+	})
+
+
+
+
+
